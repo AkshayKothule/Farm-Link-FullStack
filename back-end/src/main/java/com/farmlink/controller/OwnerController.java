@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.farmlink.dto.OwnerProfileRequestDto;
 import com.farmlink.services.OwnerService;
 
-<<<<<<< HEAD
 
-=======
+
+
 import jakarta.validation.Valid;
->>>>>>> refs/remotes/origin/dev
+
 import lombok.RequiredArgsConstructor;
 
 @RestController

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.farmlink.customexception.FarmlinkCustomException;
 import com.farmlink.customexception.ResourceNotFoundException;
+import com.farmlink.dto.EquipmentBrowseResponseDto;
 import com.farmlink.dto.EquipmentRequestDto;
 import com.farmlink.dto.EquipmentResponseDto;
 import com.farmlink.dto.EquipmentUpdateRequestDto;
@@ -143,6 +144,27 @@ public class EquipmentServiceImpl implements EquipmentService {
        // 5️⃣ SAFE DELETE
        equipmentRepository.delete(equipment);
    }
+   
+   
+   //rental check 
+   @Override
+   public List<EquipmentBrowseResponseDto> browseAvailableEquipments() {
+
+       return equipmentRepository.findByAvailableTrue()
+               .stream()
+               .map(eq -> {
+                   EquipmentBrowseResponseDto dto =
+                           modelMapper.map(eq, EquipmentBrowseResponseDto.class);
+
+                   // Owner display info
+                   dto.setOwnerBusinessName(
+                           eq.getOwner().getBusinessName());
+
+                   return dto;
+               })
+               .toList();
+   }
+
 
     
 }

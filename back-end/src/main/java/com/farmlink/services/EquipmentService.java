@@ -3,6 +3,7 @@ package com.farmlink.services;
 import java.util.List;
 
 import com.farmlink.customexception.FarmlinkCustomException;
+import com.farmlink.dto.EquipmentBrowseResponseDto;
 import com.farmlink.dto.EquipmentRequestDto;
 import com.farmlink.dto.EquipmentResponseDto;
 import com.farmlink.dto.EquipmentUpdateRequestDto;
@@ -20,5 +21,9 @@ public interface EquipmentService {
             String email) throws FarmlinkCustomException ;
     
     public void deleteEquipment(Long equipmentId, String email) throws FarmlinkCustomException ;
+    
+    //equipmentBroweResponeseDto
+    
+    List<EquipmentBrowseResponseDto> browseAvailableEquipments();
 
 }
