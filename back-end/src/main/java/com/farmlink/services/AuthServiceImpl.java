@@ -68,7 +68,7 @@ public class AuthServiceImpl implements AuthService {
     // ================= LOGIN =================
     @Override
     public LoginResponseDto login(LoginRequestDto loginDto) {
-
+     System.out.println(loginDto.getEmail()+" "+loginDto.getPassword());
         // 1️⃣ Authenticate using Spring Security
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(

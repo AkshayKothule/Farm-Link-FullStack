@@ -76,6 +76,6 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("Something went wrong", LocalDateTime.now()));
+                .body(new ErrorResponse(ex.getMessage(), LocalDateTime.now()));
     }
 }
