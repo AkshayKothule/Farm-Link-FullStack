@@ -11,7 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.farmlink.dto.OwnerProfileRequestDto;
 import com.farmlink.services.OwnerService;
 
+<<<<<<< HEAD
 
+=======
+import jakarta.validation.Valid;
+>>>>>>> refs/remotes/origin/dev
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -22,12 +26,12 @@ public class OwnerController {
     private final OwnerService ownerService;
 
     @PostMapping("/profile")
-    public ResponseEntity<String> createOrGetProfile(
-    		@RequestBody OwnerProfileRequestDto ownerProfileRequestDto,
+    public ResponseEntity<String> createProfile(
+            @Valid @RequestBody OwnerProfileRequestDto dto,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        ownerService.createOwnerProfile(ownerProfileRequestDto,userDetails.getUsername());
-
+        ownerService.createOwnerProfile(dto, userDetails.getUsername());
         return ResponseEntity.ok("Owner profile ready");
     }
+
 }
