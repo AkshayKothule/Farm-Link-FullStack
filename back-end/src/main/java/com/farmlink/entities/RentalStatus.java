@@ -8,5 +8,7 @@ public enum RentalStatus {
 
 	    REJECTED,    // Owner rejected the request
 
-	    COMPLETED    // Rental period completed
+	    COMPLETED,   // Rental period completed
+	    
+	    CANCELLED
 }
