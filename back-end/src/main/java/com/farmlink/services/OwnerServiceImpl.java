@@ -25,25 +25,28 @@ public class OwnerServiceImpl implements OwnerService {
             OwnerProfileRequestDto ownerProfileRequestDto,
             String email) {
 
-        // 1️⃣ Find User (same as Farmer)
+    	System.out.println(ownerProfileRequestDto);
+        // 1️⃣ Find User
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("User not found"));
 
-        // 2️⃣ If Owner already exists → return it (lazy)
+        // 2️⃣ Lazy create Owner
         return ownerRepository.findByUserId(user.getId())
                 .orElseGet(() -> {
 
-                    // 3️⃣ DTO → Entity mapping
+                    // 3️⃣ DTO → Entity
                     Owner owner = modelMapper.map(
                             ownerProfileRequestDto,
                             Owner.class
                     );
 
-                    // 4️⃣ Mandatory association
+                    // 4️⃣ Mandatory + system fields
                     owner.setUser(user);
-
+                    owner.setVerified(false);   // 👈 isValid / verified set here
+                    System.out.println(owner);
                     return ownerRepository.save(owner);
                 });
     }
+
 }
