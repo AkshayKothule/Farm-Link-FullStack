@@ -13,12 +13,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.farmlink.dto.ErrorResponse;
 
+import jakarta.validation.ConstraintViolationException;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 1️⃣ DTO validation errors (@Valid)
+    // 1️⃣ @Valid DTO validation errors
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
             MethodArgumentNotValidException ex) {
 
         String message = ex.getBindingResult()
@@ -32,7 +34,22 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(message, LocalDateTime.now()));
     }
 
-    // 2️⃣ Business logic errors
+    // 2️⃣ @Validated (PathVariable / RequestParam)
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(
+            ConstraintViolationException ex) {
+
+        String message = ex.getConstraintViolations()
+                .stream()
+                .map(v -> v.getMessage())
+                .collect(Collectors.joining(", "));
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(message, LocalDateTime.now()));
+    }
+
+    // 3️⃣ Business rule violations
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
             IllegalArgumentException ex) {
@@ -42,7 +59,7 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(ex.getMessage(), LocalDateTime.now()));
     }
 
-    // 3️⃣ Authorization errors
+    // 4️⃣ Authorization
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(
             AccessDeniedException ex) {
@@ -52,7 +69,7 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("Access denied", LocalDateTime.now()));
     }
 
-    // 4️⃣ Catch-all (unexpected errors)
+    // 5️⃣ Catch-all (last safety net)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex) {
