@@ -14,17 +14,23 @@ public class Payment extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // One payment for one rental
+    // One payment per rental
     @OneToOne(optional = false)
-    @JoinColumn(name = "rental_request_id", nullable = false, unique = true)
+    @JoinColumn(
+        name = "rental_request_id",
+        nullable = false,
+        unique = true
+    )
     private RentalRequest rentalRequest;
 
     @Column(nullable = false)
     private Double amount;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String paymentMode; // UPI, CASH, CARD
+    private PaymentMode paymentMode;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status; // SUCCESS, FAILED
+    private PaymentStatus status;
 }

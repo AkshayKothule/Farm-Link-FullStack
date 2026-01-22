@@ -42,6 +42,9 @@ public class RentalRequest extends BaseEntity {
     @ManyToOne(optional = false)
     @JoinColumn(name = "equipment_id", nullable = false)
     private Equipment equipment;
+    
+    @Column(nullable = false)
+    private Double totalAmount; 
 
     // Rental period
     @Column(nullable = false)
@@ -54,5 +57,8 @@ public class RentalRequest extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RentalStatus status;
+    
+    
+    
 }
 
