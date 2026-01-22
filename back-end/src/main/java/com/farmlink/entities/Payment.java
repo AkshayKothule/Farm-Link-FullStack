@@ -14,23 +14,21 @@ public class Payment extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // One payment per rental
     @OneToOne(optional = false)
-    @JoinColumn(
-        name = "rental_request_id",
-        nullable = false,
-        unique = true
-    )
+    @JoinColumn(name = "rental_request_id", nullable = false, unique = true)
     private RentalRequest rentalRequest;
 
     @Column(nullable = false)
     private Double amount;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private PaymentMode paymentMode;
+    // Razorpay fields
+    @Column(nullable = false, unique = true)
+    private String razorpayOrderId;
+
+    private String razorpayPaymentId;
+    private String razorpaySignature;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PaymentStatus status;
+    private PaymentStatus status; // CREATED, SUCCESS, FAILED
 }

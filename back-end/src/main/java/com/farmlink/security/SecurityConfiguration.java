@@ -59,6 +59,8 @@ public class SecurityConfiguration {
             .requestMatchers("/farmers/**").hasRole("FARMER")
             .requestMatchers(HttpMethod.POST, "/rentals/farmer/**").hasRole("FARMER")
             .requestMatchers(HttpMethod.DELETE, "/rentals/farmer/**").hasRole("FARMER")
+            .requestMatchers("/payments/**").hasRole("FARMER")
+
 
             // 🔐 OWNER APIs
             .requestMatchers("/owners/**").hasRole("OWNER")

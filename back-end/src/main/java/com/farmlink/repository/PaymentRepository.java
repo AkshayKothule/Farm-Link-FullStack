@@ -10,4 +10,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     boolean existsByRentalRequestId(Long rentalRequestId);
 
     Optional<Payment> findByRentalRequestId(Long rentalRequestId);
+    
+    // 🔥 REQUIRED for Razorpay verification
+    Optional<Payment> findByRazorpayOrderId(String razorpayOrderId);
 }
