@@ -38,6 +38,7 @@ public class SecurityConfiguration {
             )
             .authorizeHttpRequests(request -> request
 
+<<<<<<< HEAD
                 // 🔓 Public
                 .requestMatchers(
                     "/v3/api-docs/**",
@@ -69,6 +70,48 @@ public class SecurityConfiguration {
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+=======
+        http.sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        http
+        .csrf(csrf -> csrf.disable())
+        .sessionManagement(session ->
+            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        )
+        .authorizeHttpRequests(request -> request
+
+            // 🔓 Public endpoints
+            .requestMatchers(
+                "/v3/api-docs/**",
+                "/swagger-ui/**",
+                "/swagger-ui.html",
+                "/auth/login",
+                "/auth/register"
+            ).permitAll()
+
+            // Pre-flight
+            .requestMatchers(HttpMethod.OPTIONS).permitAll()
+
+            // 🔐 FARMER APIs
+            .requestMatchers("/farmers/**").hasRole("FARMER")
+            .requestMatchers(HttpMethod.POST, "/rentals/farmer/**").hasRole("FARMER")
+            .requestMatchers(HttpMethod.DELETE, "/rentals/farmer/**").hasRole("FARMER")
+
+            // 🔐 OWNER APIs
+            .requestMatchers("/owners/**").hasRole("OWNER")
+            .requestMatchers(HttpMethod.PUT, "/rentals/owner/**").hasRole("OWNER")
+
+            // 🔐 ADMIN APIs
+            .requestMatchers("/admin/**").hasRole("ADMIN")
+            .requestMatchers(HttpMethod.DELETE, "/reviews/**").hasRole("ADMIN")
+
+
+            // 🔐 Any other request
+            .anyRequest().authenticated()
+        )
+        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+>>>>>>> refs/remotes/origin/dev
 
         return http.build();
     }

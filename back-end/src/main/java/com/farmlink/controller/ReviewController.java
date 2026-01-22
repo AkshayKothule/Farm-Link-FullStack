@@ -1,7 +1,9 @@
 package com.farmlink.controller;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -36,8 +38,9 @@ public class ReviewController {
 
         reviewService.addReview(reviewRequestDto, userDetails.getUsername());
 
-        return ResponseEntity.ok("Review added successfully");
-    }
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body("Review added successfully");    }
     
     
     
@@ -55,13 +58,18 @@ public class ReviewController {
     
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<String> deleteReview(
+<<<<<<< HEAD
     		@PathVariable("reviewId") Long reviewId) {
+=======
+            @PathVariable Long reviewId,
+            @AuthenticationPrincipal UserDetails userDetails) throws AccessDeniedException {
+>>>>>>> refs/remotes/origin/dev
 
-        reviewService.deleteReviewByAdmin(reviewId);
+        reviewService.deleteReviewByAdmin(reviewId, userDetails.getUsername());
 
         return ResponseEntity.ok("Review deleted by admin");
     }
-    
+
     
     @GetMapping("/equipment/{equipmentId}")
     public ResponseEntity<List<ReviewResponseDto>> getReviews(

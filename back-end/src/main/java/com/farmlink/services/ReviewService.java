@@ -1,5 +1,6 @@
 package com.farmlink.services;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 import com.farmlink.customexception.AuthenticationException;
@@ -12,8 +13,7 @@ public interface ReviewService {
 	
         public void updateReview(Long reviewId, ReviewRequestDto dto, String username) throws AuthenticationException;
         
-        public void deleteReviewByAdmin(Long reviewId);
-        
+        public void deleteReviewByAdmin(Long reviewId, String email) throws AccessDeniedException ;        
         public List<ReviewResponseDto> getReviewsByEquipment(Long equipmentId);
 
         public Double getAverageRating(Long equipmentId);

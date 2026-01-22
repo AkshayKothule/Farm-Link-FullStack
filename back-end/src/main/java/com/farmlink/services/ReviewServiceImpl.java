@@ -1,4 +1,5 @@
 package com.farmlink.services;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import com.farmlink.entities.Equipment;
 import com.farmlink.entities.Farmer;
 import com.farmlink.entities.Review;
 import com.farmlink.entities.User;
+import com.farmlink.entities.UserRole;
 import com.farmlink.repository.EquipmentRepository;
 import com.farmlink.repository.FarmerRepository;
 import com.farmlink.repository.ReviewRepository;
@@ -90,15 +92,19 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     
-    @Override
-    public void deleteReviewByAdmin(Long reviewId) {
+    public void deleteReviewByAdmin(Long reviewId, String email) throws AccessDeniedException {
 
-        Review review = reviewRepository.findById(reviewId)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Review not found"));
+                        new ResourceNotFoundException("User not found"));
 
-        reviewRepository.delete(review);
+        if (user.getRole() != UserRole.ADMIN) {
+            throw new AccessDeniedException("Only admin can delete reviews");
+        }
+
+        reviewRepository.deleteById(reviewId);
     }
+
 
     
     @Override
