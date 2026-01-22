@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.farmlink.entities.User;
+import com.farmlink.entities.UserRole;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
@@ -15,4 +16,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     boolean existsByPhoneNumber(String phoneNumber);
+    
+    long countByRole(UserRole role);
+
 }
