@@ -55,13 +55,15 @@ public class EquipmentController {
     
     
     
+    
     //Update Equipment
     @PutMapping("/{equipmentId}")
     public ResponseEntity<String> updateEquipment(
-            @PathVariable Long equipmentId,
+            @PathVariable("equipmentId") Long equipmentId,
             @Valid @RequestBody EquipmentUpdateRequestDto dto,
             @AuthenticationPrincipal UserDetails userDetails) throws FarmlinkCustomException {
 
+    	System.out.println("equipment id : "+equipmentId);
         equipmentService.updateEquipment(
                 equipmentId,
                 dto,
@@ -77,7 +79,7 @@ public class EquipmentController {
     //Deleting Equipment
     @DeleteMapping("/{equipmentId}")
     public ResponseEntity<String> deleteEquipment(
-            @PathVariable Long equipmentId,
+            @PathVariable("equipmentId") Long equipmentId,
             @AuthenticationPrincipal UserDetails userDetails) throws FarmlinkCustomException {
 
         equipmentService.deleteEquipment(
