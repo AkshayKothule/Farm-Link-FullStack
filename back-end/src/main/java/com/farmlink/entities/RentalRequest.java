@@ -42,10 +42,13 @@ public class RentalRequest extends BaseEntity {
     @ManyToOne(optional = false)
     @JoinColumn(name = "equipment_id", nullable = false)
     private Equipment equipment;
-    
-    @Column(nullable = false)
-    private Double totalAmount; 
-
+    /**
+     * Total rental amount
+     * - NULL when request is PENDING / APPROVED
+     * - Set only after successful payment
+     */
+    @Column(name = "total_amount")
+    private Double totalAmount;
     // Rental period
     @Column(nullable = false)
     private LocalDate startDate;

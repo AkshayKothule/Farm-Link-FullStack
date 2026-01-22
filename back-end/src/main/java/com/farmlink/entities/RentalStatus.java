@@ -2,7 +2,7 @@ package com.farmlink.entities;
 
 public enum RentalStatus {
 	
-	 	REQUESTED,   // Farmer has requested the equipment
+	 	PENDING,   // Farmer has requested the equipment
 
 	    APPROVED,    // Owner approved the request
 
@@ -10,5 +10,7 @@ public enum RentalStatus {
 
 	    COMPLETED,   // Rental period completed
 	    
-	    CANCELLED
+	    CANCELLED,
+	    
+	    PAID
 }

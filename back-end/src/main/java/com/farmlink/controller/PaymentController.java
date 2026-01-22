@@ -22,7 +22,7 @@ public class PaymentController {
     // STEP 1: Create Razorpay Order
     @PostMapping("/create/{rentalId}")
     public ResponseEntity<PaymentOrderResponseDto> createOrder(
-            @PathVariable Long rentalId,
+            @PathVariable("rentalId") Long rentalId,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         return ResponseEntity.ok(
