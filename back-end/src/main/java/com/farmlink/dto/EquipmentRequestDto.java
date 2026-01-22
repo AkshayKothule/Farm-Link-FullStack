@@ -18,6 +18,7 @@ public class EquipmentRequestDto {
     @NotNull(message="Rent Needed")
     private Double rentPerDay;
 
+    private Boolean available;
     private String description;
     private String imageUrl;
 }

@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.farmlink.entities.Review;
 
@@ -22,5 +23,5 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     
     // Average rating of an equipment
     @Query("select avg(r.rating) from Review r where r.equipment.id = :equipmentId")
-    Double findAverageRatingByEquipmentId(Long equipmentId);
+    Double findAverageRatingByEquipmentId(@Param("equipmentId") Long equipmentId);
 }

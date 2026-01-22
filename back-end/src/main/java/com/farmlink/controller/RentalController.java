@@ -1,12 +1,23 @@
-package com.farmlink.controller;
 
+package com.farmlink.controller;
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.farmlink.customexception.FarmlinkCustomException;
 import com.farmlink.dto.RentalRequestDto;
+import com.farmlink.entities.RentalRequest;
 import com.farmlink.services.RentalService;
 
 import jakarta.validation.Valid;
@@ -19,67 +30,62 @@ public class RentalController {
 
     private final RentalService rentalService;
 
-    // =========================
-    // FARMER → CREATE REQUEST
-    // =========================
+    // FARMER → CREATE
     @PostMapping("/farmer")
-    public ResponseEntity<String> createRentalRequest(
+    public ResponseEntity<String> createRental(
             @Valid @RequestBody RentalRequestDto dto,
             @AuthenticationPrincipal UserDetails userDetails) throws FarmlinkCustomException {
 
-        rentalService.createRentalRequest(
-                dto,
-                userDetails.getUsername()
-        );
-
-        return ResponseEntity.ok("Rental request submitted successfully");
+        rentalService.createRentalRequest(dto, userDetails.getUsername());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("Rental request submitted");
     }
 
-    // =========================
-    // FARMER → CANCEL REQUEST
-    // =========================
-    @DeleteMapping("/farmer/{rentalRequestId}")
-    public ResponseEntity<String> cancelRentalRequest(
-            @PathVariable Long rentalRequestId,
+    // FARMER → CANCEL
+    @DeleteMapping("/farmer/{id}")
+    public ResponseEntity<String> cancelRental(
+            @PathVariable("id") Long id,
             @AuthenticationPrincipal UserDetails userDetails) throws FarmlinkCustomException {
 
-        rentalService.cancelRentalRequest(
-                rentalRequestId,
-                userDetails.getUsername()
-        );
-
-        return ResponseEntity.ok("Rental request cancelled successfully");
+        rentalService.cancelRentalRequest(id, userDetails.getUsername());
+        return ResponseEntity.ok("Rental request cancelled");
     }
 
-    // =========================
-    // OWNER → APPROVE REQUEST
-    // =========================
-    @PutMapping("/owner/{rentalRequestId}/approve")
-    public ResponseEntity<String> approveRental(
-            @PathVariable Long rentalRequestId,
-            @AuthenticationPrincipal UserDetails userDetails) throws FarmlinkCustomException {
+    // FARMER DASHBOARD
+    @GetMapping("/farmer")
+    public ResponseEntity<List<RentalRequest>> farmerDashboard(
+            @AuthenticationPrincipal UserDetails userDetails) {
 
-        rentalService.approveRental(
-                rentalRequestId,
-                userDetails.getUsername()
-        );
-
-        return ResponseEntity.ok("Rental request approved");
+        return ResponseEntity.ok(
+                rentalService.getFarmerRentals(userDetails.getUsername()));
     }
 
-    // =========================
-    // OWNER → REJECT REQUEST
-    // =========================
-    @PutMapping("/owner/{rentalRequestId}/reject")
-    public ResponseEntity<String> rejectRental(
-            @PathVariable Long rentalRequestId,
+    // OWNER DASHBOARD
+    @GetMapping("/owner")
+    public ResponseEntity<List<RentalRequest>> ownerDashboard(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        return ResponseEntity.ok(
+                rentalService.getOwnerRentals(userDetails.getUsername()));
+    }
+
+    // OWNER → APPROVE
+    @PutMapping("/owner/{id}/approve")
+    public ResponseEntity<String> approve(
+            @PathVariable("id") Long id,
             @AuthenticationPrincipal UserDetails userDetails) throws FarmlinkCustomException {
 
-        rentalService.rejectRental(
-                rentalRequestId,
-                userDetails.getUsername()
-        );
+        rentalService.approveRental(id, userDetails.getUsername());
+        return ResponseEntity.ok("Rental approved");
+    }
 
-        return ResponseEntity.ok("Rental request rejected");
+    // OWNER → REJECT
+    @PutMapping("/owner/{id}/reject")
+    public ResponseEntity<String> reject(
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) throws FarmlinkCustomException {
+
+        rentalService.rejectRental(id, userDetails.getUsername());
+        return ResponseEntity.ok("Rental rejected");
     }
 }

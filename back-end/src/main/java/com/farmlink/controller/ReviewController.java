@@ -43,7 +43,7 @@ public class ReviewController {
     
     @PutMapping("/{reviewId}")
     public ResponseEntity<String> updateReview(
-            @PathVariable Long reviewId,
+            @PathVariable("reviewId") Long reviewId,
             @Valid @RequestBody ReviewRequestDto dto,
             @AuthenticationPrincipal UserDetails userDetails) {
 
@@ -55,7 +55,7 @@ public class ReviewController {
     
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<String> deleteReview(
-            @PathVariable Long reviewId) {
+    		@PathVariable("reviewId") Long reviewId) {
 
         reviewService.deleteReviewByAdmin(reviewId);
 
@@ -65,7 +65,7 @@ public class ReviewController {
     
     @GetMapping("/equipment/{equipmentId}")
     public ResponseEntity<List<ReviewResponseDto>> getReviews(
-            @PathVariable Long equipmentId) {
+    		@PathVariable("equipmentId") Long equipmentId) {
 
         return ResponseEntity.ok(
                 reviewService.getReviewsByEquipment(equipmentId)
@@ -74,7 +74,8 @@ public class ReviewController {
 
     @GetMapping("/equipment/{equipmentId}/avg")
     public ResponseEntity<Double> getAverageRating(
-            @PathVariable Long equipmentId) {
+    		@PathVariable("equipmentId") Long equipmentId)
+    		{
 
         return ResponseEntity.ok(
                 reviewService.getAverageRating(equipmentId)

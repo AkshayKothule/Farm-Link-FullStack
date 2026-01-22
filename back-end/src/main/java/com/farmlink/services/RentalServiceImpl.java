@@ -1,5 +1,6 @@
 
 package com.farmlink.services;
+import java.util.List;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +57,16 @@ public class RentalServiceImpl implements RentalService {
             throw new FarmlinkCustomException("Invalid rental dates");
         }
 
+        // 🔒 Duplicate pending request check
+        if (rentalRepository.existsByFarmerIdAndEquipmentIdAndStatus(
+                farmer.getId(),
+                equipment.getId(),
+                RentalStatus.REQUESTED)) {
+
+            throw new FarmlinkCustomException(
+                    "You already have a pending request for this equipment");
+        }
+
         RentalRequest rental = modelMapper.map(dto, RentalRequest.class);
         rental.setFarmer(farmer);
         rental.setEquipment(equipment);
@@ -79,12 +90,10 @@ public class RentalServiceImpl implements RentalService {
         RentalRequest rental = rentalRepository.findById(rentalRequestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Rental request not found"));
 
-        // 🔐 Ownership check
         if (!rental.getFarmer().getId().equals(farmer.getId())) {
-            throw new FarmlinkCustomException("You cannot cancel this rental request");
+            throw new FarmlinkCustomException("You can cancel only your own request");
         }
 
-        // 🔥 Status rule
         if (rental.getStatus() != RentalStatus.REQUESTED) {
             throw new FarmlinkCustomException(
                     "Only REQUESTED rentals can be cancelled");
@@ -95,7 +104,7 @@ public class RentalServiceImpl implements RentalService {
     }
 
     // =========================
-    // OWNER → APPROVE REQUEST
+    // OWNER → APPROVE
     // =========================
     @Override
     public void approveRental(Long rentalRequestId, String ownerEmail) throws FarmlinkCustomException {
@@ -109,10 +118,8 @@ public class RentalServiceImpl implements RentalService {
         RentalRequest rental = rentalRepository.findById(rentalRequestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Rental request not found"));
 
-        // 🔐 Ownership check
         if (!rental.getEquipment().getOwner().getId().equals(owner.getId())) {
-            throw new FarmlinkCustomException(
-                    "You are not allowed to approve this rental");
+            throw new FarmlinkCustomException("Not allowed to approve this request");
         }
 
         if (rental.getStatus() != RentalStatus.REQUESTED) {
@@ -127,7 +134,7 @@ public class RentalServiceImpl implements RentalService {
     }
 
     // =========================
-    // OWNER → REJECT REQUEST
+    // OWNER → REJECT
     // =========================
     @Override
     public void rejectRental(Long rentalRequestId, String ownerEmail) throws FarmlinkCustomException {
@@ -141,10 +148,8 @@ public class RentalServiceImpl implements RentalService {
         RentalRequest rental = rentalRepository.findById(rentalRequestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Rental request not found"));
 
-        // 🔐 Ownership check
         if (!rental.getEquipment().getOwner().getId().equals(owner.getId())) {
-            throw new FarmlinkCustomException(
-                    "You are not allowed to reject this rental");
+            throw new FarmlinkCustomException("Not allowed to reject this request");
         }
 
         if (rental.getStatus() != RentalStatus.REQUESTED) {
@@ -154,5 +159,35 @@ public class RentalServiceImpl implements RentalService {
 
         rental.setStatus(RentalStatus.REJECTED);
         rentalRepository.save(rental);
+    }
+
+    // =========================
+    // FARMER DASHBOARD
+    // =========================
+    @Override
+    public List<RentalRequest> getFarmerRentals(String farmerEmail) {
+
+        User user = userRepository.findByEmail(farmerEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Farmer farmer = farmerRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Farmer profile not found"));
+
+        return rentalRepository.findByFarmerId(farmer.getId());
+    }
+
+    // =========================
+    // OWNER DASHBOARD
+    // =========================
+    @Override
+    public List<RentalRequest> getOwnerRentals(String ownerEmail) {
+
+        User user = userRepository.findByEmail(ownerEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Owner owner = ownerRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Owner profile not found"));
+
+        return rentalRepository.findByEquipmentOwnerId(owner.getId());
     }
 }

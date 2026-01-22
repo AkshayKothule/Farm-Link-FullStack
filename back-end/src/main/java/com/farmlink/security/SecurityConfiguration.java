@@ -31,44 +31,48 @@ public class SecurityConfiguration {
 
         log.info("Configuring FarmLink Spring Security");
 
-        http.csrf(csrf -> csrf.disable());
+        http
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .authorizeHttpRequests(request -> request
 
-        http.sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        http.authorizeHttpRequests(request -> request
-
-                // 🔓 Public endpoints
+                // 🔓 Public
                 .requestMatchers(
-                        "/v3/api-docs/**",
-                        "/swagger-ui/**",
-                        "/swagger-ui.html",
-                        "/auth/login",
-                        "/auth/register"
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/auth/login",
+                    "/auth/register"
                 ).permitAll()
 
-                // Pre-flight (React)
+                // Pre-flight
                 .requestMatchers(HttpMethod.OPTIONS).permitAll()
 
                 // 🔐 OWNER APIs
-                .requestMatchers(HttpMethod.POST, "/equipments/**").hasRole("OWNER")
+                .requestMatchers("/owners/**").hasRole("OWNER")
 
                 // 🔐 FARMER APIs
-                .requestMatchers(HttpMethod.POST, "/rentals/**").hasRole("FARMER")
-                .requestMatchers(HttpMethod.GET, "/rentals/farmer/**").hasRole("FARMER")
+                .requestMatchers("/farmers/**").hasRole("FARMER")
 
-                // 🔐 ADMIN APIs
+                // 🔐 RENTAL APIs (mixed)
+                .requestMatchers(HttpMethod.POST, "/rentals/farmer/**").hasRole("FARMER")
+                .requestMatchers(HttpMethod.DELETE, "/rentals/farmer/**").hasRole("FARMER")
+
+                .requestMatchers(HttpMethod.PUT, "/rentals/owner/**").hasRole("OWNER")
+
+                // 🔐 ADMIN
                 .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                // 🔐 Any other request
+                // any other
                 .anyRequest().authenticated()
-        )
-
-        // JWT filter
-        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+            )
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
     @Bean
     AuthenticationManager authenticationManager(AuthenticationConfiguration config)
