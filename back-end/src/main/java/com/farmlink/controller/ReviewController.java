@@ -46,7 +46,7 @@ public class ReviewController {
     
     @PutMapping("/{reviewId}")
     public ResponseEntity<String> updateReview(
-            @PathVariable("reviewId") Long reviewId,
+            @PathVariable Long reviewId,
             @Valid @RequestBody ReviewRequestDto dto,
             @AuthenticationPrincipal UserDetails userDetails) {
 
@@ -58,12 +58,8 @@ public class ReviewController {
     
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<String> deleteReview(
-<<<<<<< HEAD
-    		@PathVariable("reviewId") Long reviewId) {
-=======
             @PathVariable Long reviewId,
             @AuthenticationPrincipal UserDetails userDetails) throws AccessDeniedException {
->>>>>>> refs/remotes/origin/dev
 
         reviewService.deleteReviewByAdmin(reviewId, userDetails.getUsername());
 
@@ -73,7 +69,7 @@ public class ReviewController {
     
     @GetMapping("/equipment/{equipmentId}")
     public ResponseEntity<List<ReviewResponseDto>> getReviews(
-    		@PathVariable("equipmentId") Long equipmentId) {
+            @PathVariable Long equipmentId) {
 
         return ResponseEntity.ok(
                 reviewService.getReviewsByEquipment(equipmentId)
@@ -82,8 +78,7 @@ public class ReviewController {
 
     @GetMapping("/equipment/{equipmentId}/avg")
     public ResponseEntity<Double> getAverageRating(
-    		@PathVariable("equipmentId") Long equipmentId)
-    		{
+            @PathVariable Long equipmentId) {
 
         return ResponseEntity.ok(
                 reviewService.getAverageRating(equipmentId)

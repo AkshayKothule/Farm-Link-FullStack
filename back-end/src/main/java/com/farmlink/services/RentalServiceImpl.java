@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.farmlink.customexception.FarmlinkCustomException;
 import com.farmlink.customexception.ResourceNotFoundException;
+import com.farmlink.dto.FarmerRentalResponseDto;
+import com.farmlink.dto.OwnerRentalResponseDto;
 import com.farmlink.dto.RentalRequestDto;
 import com.farmlink.entities.Equipment;
 import com.farmlink.entities.Farmer;
@@ -165,7 +167,7 @@ public class RentalServiceImpl implements RentalService {
     // FARMER DASHBOARD
     // =========================
     @Override
-    public List<RentalRequest> getFarmerRentals(String farmerEmail) {
+    public List<FarmerRentalResponseDto> getFarmerRentals(String farmerEmail) {
 
         User user = userRepository.findByEmail(farmerEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -173,14 +175,35 @@ public class RentalServiceImpl implements RentalService {
         Farmer farmer = farmerRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Farmer profile not found"));
 
-        return rentalRepository.findByFarmerId(farmer.getId());
+        return rentalRepository.findByFarmerId(farmer.getId())
+                .stream()
+                .map(r -> {
+                    FarmerRentalResponseDto dto = new FarmerRentalResponseDto();
+                    dto.setRentalId(r.getId());
+                    dto.setEquipmentName(r.getEquipment().getName());
+                    dto.setEquipmentCategory(r.getEquipment().getCategory());
+
+                    // ⭐ OWNER NAME (important)
+                    dto.setOwnerName(
+                            r.getEquipment()
+                             .getOwner()
+                             .getUser()
+                             .getFirstName()
+                    );
+
+                    dto.setStartDate(r.getStartDate());
+                    dto.setEndDate(r.getEndDate());
+                    dto.setStatus(r.getStatus());
+                    return dto;
+                })
+                .toList();
     }
 
     // =========================
     // OWNER DASHBOARD
     // =========================
     @Override
-    public List<RentalRequest> getOwnerRentals(String ownerEmail) {
+    public List<OwnerRentalResponseDto> getOwnerRentals(String ownerEmail) {
 
         User user = userRepository.findByEmail(ownerEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -188,6 +211,24 @@ public class RentalServiceImpl implements RentalService {
         Owner owner = ownerRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Owner profile not found"));
 
-        return rentalRepository.findByEquipmentOwnerId(owner.getId());
+        return rentalRepository.findByEquipmentOwnerId(owner.getId())
+                .stream()
+                .map(r -> {
+                    OwnerRentalResponseDto dto = new OwnerRentalResponseDto();
+                    dto.setRentalId(r.getId());
+                    dto.setFarmerName(
+                            r.getFarmer()
+                             .getUser()
+                             .getFirstName()
+                    );
+                    dto.setEquipmentName(r.getEquipment().getName());
+                    dto.setEquipmentCategory(r.getEquipment().getCategory());
+                    dto.setStartDate(r.getStartDate());
+                    dto.setEndDate(r.getEndDate());
+                    dto.setStatus(r.getStatus());
+                    return dto;
+                })
+                .toList();
     }
+
 }

@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.farmlink.customexception.FarmlinkCustomException;
+import com.farmlink.dto.FarmerRentalResponseDto;
+import com.farmlink.dto.OwnerRentalResponseDto;
 import com.farmlink.dto.RentalRequestDto;
 import com.farmlink.entities.RentalRequest;
 import com.farmlink.services.RentalService;
@@ -53,16 +55,17 @@ public class RentalController {
 
     // FARMER DASHBOARD
     @GetMapping("/farmer")
-    public ResponseEntity<List<RentalRequest>> farmerDashboard(
+    public ResponseEntity<List<FarmerRentalResponseDto>> farmerDashboard(
             @AuthenticationPrincipal UserDetails userDetails) {
 
         return ResponseEntity.ok(
                 rentalService.getFarmerRentals(userDetails.getUsername()));
     }
 
-    // OWNER DASHBOARD
+
+ // OWNER DASHBOARD
     @GetMapping("/owner")
-    public ResponseEntity<List<RentalRequest>> ownerDashboard(
+    public ResponseEntity<List<OwnerRentalResponseDto>> ownerDashboard(
             @AuthenticationPrincipal UserDetails userDetails) {
 
         return ResponseEntity.ok(

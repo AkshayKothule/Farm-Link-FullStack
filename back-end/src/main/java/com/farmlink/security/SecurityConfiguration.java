@@ -31,46 +31,8 @@ public class SecurityConfiguration {
 
         log.info("Configuring FarmLink Spring Security");
 
-        http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authorizeHttpRequests(request -> request
+        http.csrf(csrf -> csrf.disable());
 
-<<<<<<< HEAD
-                // 🔓 Public
-                .requestMatchers(
-                    "/v3/api-docs/**",
-                    "/swagger-ui/**",
-                    "/swagger-ui.html",
-                    "/auth/login",
-                    "/auth/register"
-                ).permitAll()
-
-                // Pre-flight
-                .requestMatchers(HttpMethod.OPTIONS).permitAll()
-
-                // 🔐 OWNER APIs
-                .requestMatchers("/owners/**").hasRole("OWNER")
-
-                // 🔐 FARMER APIs
-                .requestMatchers("/farmers/**").hasRole("FARMER")
-
-                // 🔐 RENTAL APIs (mixed)
-                .requestMatchers(HttpMethod.POST, "/rentals/farmer/**").hasRole("FARMER")
-                .requestMatchers(HttpMethod.DELETE, "/rentals/farmer/**").hasRole("FARMER")
-
-                .requestMatchers(HttpMethod.PUT, "/rentals/owner/**").hasRole("OWNER")
-
-                // 🔐 ADMIN
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-
-                // any other
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-=======
         http.sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
@@ -111,11 +73,9 @@ public class SecurityConfiguration {
             .anyRequest().authenticated()
         )
         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
->>>>>>> refs/remotes/origin/dev
 
         return http.build();
     }
-
 
     @Bean
     AuthenticationManager authenticationManager(AuthenticationConfiguration config)
