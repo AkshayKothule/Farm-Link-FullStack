@@ -36,35 +36,42 @@ public class SecurityConfiguration {
         http.sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        http.authorizeHttpRequests(request -> request
-
-                // 🔓 Public endpoints
-                .requestMatchers(
-                        "/v3/api-docs/**",
-                        "/swagger-ui/**",
-                        "/swagger-ui.html",
-                        "/auth/login",
-                        "/auth/register"
-                ).permitAll()
-
-                // Pre-flight (React)
-                .requestMatchers(HttpMethod.OPTIONS).permitAll()
-
-                // 🔐 OWNER APIs
-                .requestMatchers(HttpMethod.POST, "/equipments/**").hasRole("OWNER")
-
-                // 🔐 FARMER APIs
-                .requestMatchers(HttpMethod.POST, "/rentals/**").hasRole("FARMER")
-                .requestMatchers(HttpMethod.GET, "/rentals/farmer/**").hasRole("FARMER")
-
-                // 🔐 ADMIN APIs
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-
-                // 🔐 Any other request
-                .anyRequest().authenticated()
+        http
+        .csrf(csrf -> csrf.disable())
+        .sessionManagement(session ->
+            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         )
+        .authorizeHttpRequests(request -> request
 
-        // JWT filter
+            // 🔓 Public endpoints
+            .requestMatchers(
+                "/v3/api-docs/**",
+                "/swagger-ui/**",
+                "/swagger-ui.html",
+                "/auth/login",
+                "/auth/register"
+            ).permitAll()
+
+            // Pre-flight
+            .requestMatchers(HttpMethod.OPTIONS).permitAll()
+
+            // 🔐 FARMER APIs
+            .requestMatchers("/farmers/**").hasRole("FARMER")
+            .requestMatchers(HttpMethod.POST, "/rentals/farmer/**").hasRole("FARMER")
+            .requestMatchers(HttpMethod.DELETE, "/rentals/farmer/**").hasRole("FARMER")
+
+            // 🔐 OWNER APIs
+            .requestMatchers("/owners/**").hasRole("OWNER")
+            .requestMatchers(HttpMethod.PUT, "/rentals/owner/**").hasRole("OWNER")
+
+            // 🔐 ADMIN APIs
+            .requestMatchers("/admin/**").hasRole("ADMIN")
+            .requestMatchers(HttpMethod.DELETE, "/reviews/**").hasRole("ADMIN")
+
+
+            // 🔐 Any other request
+            .anyRequest().authenticated()
+        )
         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

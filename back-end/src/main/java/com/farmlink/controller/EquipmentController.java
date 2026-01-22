@@ -2,6 +2,7 @@ package com.farmlink.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,7 +38,8 @@ public class EquipmentController {
             @AuthenticationPrincipal UserDetails userDetails) {
 
         equipmentService.addEquipment(dto, userDetails.getUsername());
-        return ResponseEntity.ok("Equipment added successfully");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("Equipment added successfully");
     }
     
     

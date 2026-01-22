@@ -2,9 +2,12 @@ package com.farmlink.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.farmlink.customexception.ResourceNotFoundException;
 import com.farmlink.dto.OwnerProfileRequestDto;
+import com.farmlink.dto.OwnerProfileResponseDto;
+import com.farmlink.dto.OwnerProfileUpdateDto;
 import com.farmlink.entities.Owner;
 import com.farmlink.entities.User;
 import com.farmlink.repository.OwnerRepository;
@@ -48,5 +51,64 @@ public class OwnerServiceImpl implements OwnerService {
                     return ownerRepository.save(owner);
                 });
     }
+    
+    
+    
+    
+    @Override
+    @Transactional
+    public OwnerProfileResponseDto getMyProfile(String email) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found"));
+
+        Owner owner = ownerRepository.findByUserId(user.getId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Owner profile not found"));
+
+        OwnerProfileResponseDto dto = new OwnerProfileResponseDto();
+
+        // USER
+        dto.setFirstName(user.getFirstName());
+        dto.setLastName(user.getLastName());
+        dto.setPhoneNumber(user.getPhoneNumber());
+
+        // OWNER
+        dto.setBusinessName(owner.getBusinessName());
+        dto.setVerified(owner.getVerified());
+
+        return dto;
+    }
+    
+    
+    
+    @Override
+    @Transactional
+    public void updateOwnerProfile(
+            OwnerProfileUpdateDto dto,
+            String email) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found"));
+
+        Owner owner = ownerRepository.findByUserId(user.getId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Owner profile not found"));
+
+        // USER update
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setPhoneNumber(dto.getPhoneNumber());
+
+        // OWNER update
+        owner.setBusinessName(dto.getBusinessName());
+
+        userRepository.save(user);
+        ownerRepository.save(owner);
+    }
+
+
 
 }
