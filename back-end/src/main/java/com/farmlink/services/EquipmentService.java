@@ -25,5 +25,7 @@ public interface EquipmentService {
     //equipmentBroweResponeseDto
     
     List<EquipmentBrowseResponseDto> browseAvailableEquipments();
+    
+//    private EquipmentResponseDto toResponseDto(Equipment e)
 
 }

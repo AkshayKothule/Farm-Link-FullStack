@@ -164,6 +164,34 @@ public class EquipmentServiceImpl implements EquipmentService {
                })
                .toList();
    }
+   
+   
+   
+//   // 🔹 FARMER → BROWSE AVAILABLE EQUIPMENTS
+//   public List<EquipmentResponseDto> getAvailableEquipments() {
+//
+//       List<Equipment> equipments =
+//               equipmentRepository.findByAvailableTrue();
+//
+//       return equipments.stream()
+//               .map(this::toResponseDto)
+//               .toList();
+//   }
+//
+//   // 🔹 Entity → DTO Mapper
+//   public EquipmentResponseDto toResponseDto(Equipment e) {
+//       EquipmentResponseDto dto = new EquipmentResponseDto();
+//       dto.setId(e.getId());
+//       dto.setName(e.getName());
+//       dto.setCategory(e.getCategory());
+//       dto.setRentPerDay(e.getRentPerDay());
+//       dto.setDescription(e.getDescription());
+//       dto.setImageUrl(e.getImageUrl());
+//       dto.setOwnerName(
+//           e.getOwner().getUser().getFirstName()
+//       );
+//       return dto;
+//   }
 
 
     

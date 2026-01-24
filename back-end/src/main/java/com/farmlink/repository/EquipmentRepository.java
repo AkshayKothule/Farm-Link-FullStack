@@ -9,8 +9,10 @@ import com.farmlink.entities.Equipment;
 public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
 
     List<Equipment> findByOwnerId(Long ownerId);
-    List<Equipment> findByAvailableTrue();
     
     long countByAvailableTrue();
+    
+    // 🔹 Only available equipments for farmers
+    List<Equipment> findByAvailableTrue();
 
 }
