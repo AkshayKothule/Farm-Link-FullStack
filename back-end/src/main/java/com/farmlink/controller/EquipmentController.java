@@ -89,6 +89,14 @@ public class EquipmentController {
 
         return ResponseEntity.ok("Equipment deleted successfully");
     }
+    
+    
+    @GetMapping("/available")
+    public ResponseEntity<?> getAvailableEquipments() {
+        return ResponseEntity.ok(
+            equipmentService.browseAvailableEquipments()
+        );
+    }
 
 
 }

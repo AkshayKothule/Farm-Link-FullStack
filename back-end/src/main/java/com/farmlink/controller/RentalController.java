@@ -26,7 +26,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("api/rentals")
+
+@RequestMapping("/api/rentals")
+
 @RequiredArgsConstructor
 public class RentalController {
 
@@ -54,7 +56,7 @@ public class RentalController {
     }
 
     // FARMER DASHBOARD
-    @GetMapping("/farmer")
+    @GetMapping("/farmer/my-requests")
     public ResponseEntity<List<FarmerRentalResponseDto>> farmerDashboard(
             @AuthenticationPrincipal UserDetails userDetails) {
 
