@@ -1,6 +1,8 @@
-
 package com.farmlink.services;
+
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,11 +38,12 @@ public class RentalServiceImpl implements RentalService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
-    // =========================
-    // FARMER → CREATE REQUEST
-    // =========================
+    // =====================================================
+    // FARMER → CREATE RENTAL REQUEST
+    // =====================================================
     @Override
-    public void createRentalRequest(RentalRequestDto dto, String farmerEmail) throws FarmlinkCustomException {
+    public void createRentalRequest(RentalRequestDto dto, String farmerEmail)
+            throws FarmlinkCustomException {
 
         User user = userRepository.findByEmail(farmerEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -51,37 +54,50 @@ public class RentalServiceImpl implements RentalService {
         Equipment equipment = equipmentRepository.findById(dto.getEquipmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
 
-        if (!Boolean.TRUE.equals(equipment.getAvailable())) {
-            throw new FarmlinkCustomException("Equipment not available");
-        }
-
+        // Date validation
         if (dto.getEndDate().isBefore(dto.getStartDate())) {
-            throw new FarmlinkCustomException("Invalid rental dates");
+            throw new FarmlinkCustomException("End date cannot be before start date");
         }
 
-        // 🔒 Duplicate pending request check
+        // Prevent duplicate pending request
         if (rentalRepository.existsByFarmerIdAndEquipmentIdAndStatus(
                 farmer.getId(),
                 equipment.getId(),
-                RentalStatus.REQUESTED)) {
+                RentalStatus.PENDING)) {
 
             throw new FarmlinkCustomException(
                     "You already have a pending request for this equipment");
         }
 
+        // Date overlap check (only APPROVED rentals block)
+        boolean isAlreadyBooked =
+                rentalRepository.existsActiveRentalOverlap(
+                        equipment.getId(),
+                        dto.getStartDate(),
+                        dto.getEndDate(),
+                        List.of(RentalStatus.APPROVED)
+                );
+
+        if (isAlreadyBooked) {
+            throw new FarmlinkCustomException(
+                    "Equipment already booked for selected dates");
+        }
+
         RentalRequest rental = modelMapper.map(dto, RentalRequest.class);
         rental.setFarmer(farmer);
         rental.setEquipment(equipment);
-        rental.setStatus(RentalStatus.REQUESTED);
+        rental.setStatus(RentalStatus.PENDING);
+        rental.setTotalAmount(null); // important
 
         rentalRepository.save(rental);
     }
 
-    // =========================
-    // FARMER → CANCEL REQUEST
-    // =========================
+    // =====================================================
+    // FARMER → CANCEL RENTAL REQUEST
+    // =====================================================
     @Override
-    public void cancelRentalRequest(Long rentalRequestId, String farmerEmail) throws FarmlinkCustomException {
+    public void cancelRentalRequest(Long rentalRequestId, String farmerEmail)
+            throws FarmlinkCustomException {
 
         User user = userRepository.findByEmail(farmerEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -93,23 +109,25 @@ public class RentalServiceImpl implements RentalService {
                 .orElseThrow(() -> new ResourceNotFoundException("Rental request not found"));
 
         if (!rental.getFarmer().getId().equals(farmer.getId())) {
-            throw new FarmlinkCustomException("You can cancel only your own request");
+            throw new FarmlinkCustomException("You can cancel only your own rental request");
         }
 
-        if (rental.getStatus() != RentalStatus.REQUESTED) {
-            throw new FarmlinkCustomException(
-                    "Only REQUESTED rentals can be cancelled");
+        if (rental.getStatus() != RentalStatus.PENDING) {
+            throw new FarmlinkCustomException("Only PENDING rentals can be cancelled");
         }
 
         rental.setStatus(RentalStatus.CANCELLED);
+        rental.setTotalAmount(null);
+
         rentalRepository.save(rental);
     }
 
-    // =========================
-    // OWNER → APPROVE
-    // =========================
+    // =====================================================
+    // OWNER → APPROVE RENTAL REQUEST (IMPORTANT FIX)
+    // =====================================================
     @Override
-    public void approveRental(Long rentalRequestId, String ownerEmail) throws FarmlinkCustomException {
+    public void approveRental(Long rentalRequestId, String ownerEmail)
+            throws FarmlinkCustomException {
 
         User user = userRepository.findByEmail(ownerEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -121,25 +139,34 @@ public class RentalServiceImpl implements RentalService {
                 .orElseThrow(() -> new ResourceNotFoundException("Rental request not found"));
 
         if (!rental.getEquipment().getOwner().getId().equals(owner.getId())) {
-            throw new FarmlinkCustomException("Not allowed to approve this request");
+            throw new FarmlinkCustomException("Not allowed to approve this rental");
         }
 
-        if (rental.getStatus() != RentalStatus.REQUESTED) {
-            throw new FarmlinkCustomException(
-                    "Only REQUESTED rentals can be approved");
+        if (rental.getStatus() != RentalStatus.PENDING) {
+            throw new FarmlinkCustomException("Only PENDING rentals can be approved");
         }
 
+        // 🔥 FINAL AMOUNT CALCULATION HERE
+        long days = ChronoUnit.DAYS.between(
+                rental.getStartDate(),
+                rental.getEndDate()
+        ) + 1;
+
+        double totalAmount =
+                rental.getEquipment().getRentPerDay() * days;
+
+        rental.setTotalAmount(totalAmount);
         rental.setStatus(RentalStatus.APPROVED);
-        rental.getEquipment().setAvailable(false);
 
         rentalRepository.save(rental);
     }
 
-    // =========================
-    // OWNER → REJECT
-    // =========================
+    // =====================================================
+    // OWNER → REJECT RENTAL REQUEST
+    // =====================================================
     @Override
-    public void rejectRental(Long rentalRequestId, String ownerEmail) throws FarmlinkCustomException {
+    public void rejectRental(Long rentalRequestId, String ownerEmail)
+            throws FarmlinkCustomException {
 
         User user = userRepository.findByEmail(ownerEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -151,21 +178,22 @@ public class RentalServiceImpl implements RentalService {
                 .orElseThrow(() -> new ResourceNotFoundException("Rental request not found"));
 
         if (!rental.getEquipment().getOwner().getId().equals(owner.getId())) {
-            throw new FarmlinkCustomException("Not allowed to reject this request");
+            throw new FarmlinkCustomException("Not allowed to reject this rental");
         }
 
-        if (rental.getStatus() != RentalStatus.REQUESTED) {
-            throw new FarmlinkCustomException(
-                    "Only REQUESTED rentals can be rejected");
+        if (rental.getStatus() != RentalStatus.PENDING) {
+            throw new FarmlinkCustomException("Only PENDING rentals can be rejected");
         }
 
         rental.setStatus(RentalStatus.REJECTED);
+        rental.setTotalAmount(null);
+
         rentalRepository.save(rental);
     }
 
-    // =========================
+    // =====================================================
     // FARMER DASHBOARD
-    // =========================
+    // =====================================================
     @Override
     public List<FarmerRentalResponseDto> getFarmerRentals(String farmerEmail) {
 
@@ -182,26 +210,19 @@ public class RentalServiceImpl implements RentalService {
                     dto.setRentalId(r.getId());
                     dto.setEquipmentName(r.getEquipment().getName());
                     dto.setEquipmentCategory(r.getEquipment().getCategory());
-
-                    // ⭐ OWNER NAME (important)
-                    dto.setOwnerName(
-                            r.getEquipment()
-                             .getOwner()
-                             .getUser()
-                             .getFirstName()
-                    );
-
+                    dto.setOwnerName(r.getEquipment().getOwner().getUser().getFirstName());
                     dto.setStartDate(r.getStartDate());
                     dto.setEndDate(r.getEndDate());
                     dto.setStatus(r.getStatus());
+                    dto.setTotalAmount(r.getTotalAmount());
                     return dto;
                 })
                 .toList();
     }
 
-    // =========================
+    // =====================================================
     // OWNER DASHBOARD
-    // =========================
+    // =====================================================
     @Override
     public List<OwnerRentalResponseDto> getOwnerRentals(String ownerEmail) {
 
@@ -216,19 +237,15 @@ public class RentalServiceImpl implements RentalService {
                 .map(r -> {
                     OwnerRentalResponseDto dto = new OwnerRentalResponseDto();
                     dto.setRentalId(r.getId());
-                    dto.setFarmerName(
-                            r.getFarmer()
-                             .getUser()
-                             .getFirstName()
-                    );
+                    dto.setFarmerName(r.getFarmer().getUser().getFirstName());
                     dto.setEquipmentName(r.getEquipment().getName());
                     dto.setEquipmentCategory(r.getEquipment().getCategory());
                     dto.setStartDate(r.getStartDate());
                     dto.setEndDate(r.getEndDate());
                     dto.setStatus(r.getStatus());
+                    dto.setTotalAmount(r.getTotalAmount());
                     return dto;
                 })
                 .toList();
     }
-
 }

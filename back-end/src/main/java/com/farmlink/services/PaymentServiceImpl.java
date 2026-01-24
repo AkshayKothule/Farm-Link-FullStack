@@ -65,6 +65,8 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         double amount = rental.getTotalAmount();
+        
+        System.out.println("amount : "+amount);
 
         try {
             RazorpayClient client =
