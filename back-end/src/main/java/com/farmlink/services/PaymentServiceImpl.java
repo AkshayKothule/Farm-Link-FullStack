@@ -1,5 +1,7 @@
 package com.farmlink.services;
 
+import java.util.List;
+
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
@@ -7,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.farmlink.customexception.ResourceNotFoundException;
+import com.farmlink.dto.PaymentHistoryDto;
 import com.farmlink.dto.PaymentOrderResponseDto;
 import com.farmlink.dto.PaymentVerifyRequestDto;
 import com.farmlink.entities.Payment;
@@ -17,6 +20,7 @@ import com.farmlink.repository.PaymentRepository;
 import com.farmlink.repository.RentalRequestRepository;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
+import com.razorpay.RazorpayException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,7 +41,7 @@ public class PaymentServiceImpl implements PaymentService {
     // STEP 1: CREATE RAZORPAY ORDER
 @Override
 public PaymentOrderResponseDto createOrder(
-        Long rentalId, String email) {
+        Long rentalId, String email) throws RazorpayException {
 
     RentalRequest rental = rentalRequestRepository.findById(rentalId)
             .orElseThrow(() ->
@@ -84,7 +88,7 @@ public PaymentOrderResponseDto createOrder(
     // ===============================
     double amount = rental.getTotalAmount();
 
-    try {
+   
         RazorpayClient client =
                 new RazorpayClient(keyId, keySecret);
 
@@ -109,9 +113,7 @@ public PaymentOrderResponseDto createOrder(
                 amount
         );
 
-    } catch (Exception e) {
-        throw new RuntimeException("Error creating Razorpay order", e);
-    }
+    
 }
 
     // STEP 2: VERIFY PAYMENT
@@ -137,5 +139,24 @@ public void verifyPayment(PaymentVerifyRequestDto dto) {
 
     paymentRepository.save(payment);
 }
+
+@Override
+public List<PaymentHistoryDto> getFarmerPayments(String email) {
+
+    return paymentRepository
+            .findByRentalRequestFarmerUserEmail(email)
+            .stream()
+            .map(payment -> new PaymentHistoryDto(
+                    payment.getRentalRequest()
+                           .getEquipment()
+                           .getName(),          // equipmentName
+                    payment.getAmount(),     // amount
+                    payment.getStatus(),     // status
+                    payment.getUpdatedAt()   // paidAt
+            ))
+            .toList();
+}
+
+
 
 }

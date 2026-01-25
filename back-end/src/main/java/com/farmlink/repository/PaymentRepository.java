@@ -1,5 +1,6 @@
 package com.farmlink.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,5 +17,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Optional<Payment> findByRazorpayOrderId(String razorpayOrderId);
     
     Optional<Payment> findByRentalRequest(RentalRequest rentalRequest);
+    
+    List<Payment> findByRentalRequestFarmerUserEmail(String email);
+
 
 }

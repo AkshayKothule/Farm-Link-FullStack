@@ -1,13 +1,17 @@
 package com.farmlink.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import com.farmlink.dto.PaymentHistoryDto;
 import com.farmlink.dto.PaymentOrderResponseDto;
 import com.farmlink.dto.PaymentVerifyRequestDto;
 import com.farmlink.services.PaymentService;
+import com.razorpay.RazorpayException;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +27,7 @@ public class PaymentController {
     @PostMapping("/create/{rentalId}")
     public ResponseEntity<PaymentOrderResponseDto> createOrder(
             @PathVariable("rentalId") Long rentalId,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails) throws RazorpayException {
 
         return ResponseEntity.ok(
                 paymentService.createOrder(
@@ -40,4 +44,14 @@ public class PaymentController {
         paymentService.verifyPayment(dto);
         return ResponseEntity.ok("Payment verified successfully");
     }
+    
+    
+    @GetMapping("/farmer")
+    public ResponseEntity<List<PaymentHistoryDto>> paymentHistory(
+            @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(
+            paymentService.getFarmerPayments(user.getUsername())
+        );
+    }
+
 }
