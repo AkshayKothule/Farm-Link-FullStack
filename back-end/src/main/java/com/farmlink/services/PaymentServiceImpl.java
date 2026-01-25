@@ -35,86 +35,107 @@ public class PaymentServiceImpl implements PaymentService {
     private final RentalRequestRepository rentalRequestRepository;
 
     // STEP 1: CREATE RAZORPAY ORDER
-    @Override
-    public PaymentOrderResponseDto createOrder(
-            Long rentalId, String email) {
+@Override
+public PaymentOrderResponseDto createOrder(
+        Long rentalId, String email) {
 
-        RentalRequest rental = rentalRequestRepository.findById(rentalId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Rental request not found"));
+    RentalRequest rental = rentalRequestRepository.findById(rentalId)
+            .orElseThrow(() ->
+                    new ResourceNotFoundException("Rental request not found"));
 
-        // Farmer ownership check
-        if (!rental.getFarmer()
-                   .getUser()
-                   .getEmail()
-                   .equals(email)) {
-            throw new AccessDeniedException(
-                    "You are not allowed to pay for this rental");
-        }
-
-        // Only APPROVED rentals can be paid
-        if (rental.getStatus() != RentalStatus.APPROVED) {
-            throw new IllegalStateException(
-                    "Payment allowed only for approved rentals");
-        }
-
-        // Prevent duplicate payment
-        if (paymentRepository.existsByRentalRequestId(rentalId)) {
-            throw new IllegalStateException(
-                    "Payment already initiated");
-        }
-
-        double amount = rental.getTotalAmount();
-        
-        System.out.println("amount : "+amount);
-
-        try {
-            RazorpayClient client =
-                    new RazorpayClient(keyId, keySecret);
-
-            JSONObject options = new JSONObject();
-            options.put("amount", amount * 100); // INR → paise
-            options.put("currency", "INR");
-            options.put("receipt", "rental_" + rentalId);
-
-            Order order = client.orders.create(options);
-
-            Payment payment = new Payment();
-            payment.setRentalRequest(rental);
-            payment.setAmount(amount);
-            payment.setRazorpayOrderId(order.get("id"));
-            payment.setStatus(PaymentStatus.CREATED);
-
-            paymentRepository.save(payment);
-
-            return new PaymentOrderResponseDto(
-                    order.get("id"),
-                    keyId,
-                    amount
-            );
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error creating Razorpay order", e);
-        }
+    // Farmer ownership check
+    if (!rental.getFarmer()
+               .getUser()
+               .getEmail()
+               .equals(email)) {
+        throw new AccessDeniedException(
+                "You are not allowed to pay for this rental");
     }
 
-    // STEP 2: VERIFY PAYMENT
-    @Override
-    public void verifyPayment(PaymentVerifyRequestDto dto) {
+    // Only APPROVED rentals can be paid
+    if (rental.getStatus() != RentalStatus.APPROVED) {
+        throw new IllegalStateException(
+                "Payment allowed only for approved rentals");
+    }
 
-        Payment payment = paymentRepository
-                .findByRazorpayOrderId(dto.getOrderId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Payment not found"));
+    // 🔥 IMPORTANT FIX: reuse CREATED payment
+    Payment existingPayment = paymentRepository
+            .findByRentalRequestId(rentalId)
+            .orElse(null);
 
-        payment.setRazorpayPaymentId(dto.getPaymentId());
-        payment.setRazorpaySignature(dto.getSignature());
-        payment.setStatus(PaymentStatus.SUCCESS);
+    if (existingPayment != null) {
 
-        // Complete rental
-        payment.getRentalRequest()
-               .setStatus(RentalStatus.COMPLETED);
+        // ❌ Already paid
+        if (existingPayment.getStatus() == PaymentStatus.SUCCESS) {
+            throw new IllegalStateException(
+                    "Payment already completed");
+        }
+
+        // ✅ CREATED → resume same order
+        return new PaymentOrderResponseDto(
+                existingPayment.getRazorpayOrderId(),
+                keyId,
+                existingPayment.getAmount()
+        );
+    }
+
+    // ===============================
+    // CREATE NEW RAZORPAY ORDER
+    // ===============================
+    double amount = rental.getTotalAmount();
+
+    try {
+        RazorpayClient client =
+                new RazorpayClient(keyId, keySecret);
+
+        JSONObject options = new JSONObject();
+        options.put("amount", amount * 100); // INR → paise
+        options.put("currency", "INR");
+        options.put("receipt", "rental_" + rentalId);
+
+        Order order = client.orders.create(options);
+
+        Payment payment = new Payment();
+        payment.setRentalRequest(rental);
+        payment.setAmount(amount);
+        payment.setRazorpayOrderId(order.get("id"));
+        payment.setStatus(PaymentStatus.CREATED);
 
         paymentRepository.save(payment);
+
+        return new PaymentOrderResponseDto(
+                order.get("id"),
+                keyId,
+                amount
+        );
+
+    } catch (Exception e) {
+        throw new RuntimeException("Error creating Razorpay order", e);
     }
+}
+
+    // STEP 2: VERIFY PAYMENT
+@Override
+public void verifyPayment(PaymentVerifyRequestDto dto) {
+
+    Payment payment = paymentRepository
+            .findByRazorpayOrderId(dto.getOrderId())
+            .orElseThrow(() ->
+                    new ResourceNotFoundException("Payment not found"));
+
+    if (payment.getStatus() == PaymentStatus.SUCCESS) {
+        return; // already verified (idempotent)
+    }
+
+    payment.setRazorpayPaymentId(dto.getPaymentId());
+    payment.setRazorpaySignature(dto.getSignature());
+    payment.setStatus(PaymentStatus.SUCCESS);
+
+    // Complete rental
+    payment.getRentalRequest()
+           .setStatus(RentalStatus.COMPLETED);
+
+    paymentRepository.save(payment);
+}
+
 }

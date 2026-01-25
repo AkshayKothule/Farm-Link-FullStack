@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.farmlink.customexception.FarmlinkCustomException;
+import com.farmlink.dto.BookedDateDto;
 import com.farmlink.dto.FarmerRentalResponseDto;
 import com.farmlink.dto.OwnerRentalResponseDto;
 import com.farmlink.dto.RentalRequestDto;
-import com.farmlink.entities.RentalRequest;
 import com.farmlink.services.RentalService;
 
 import jakarta.validation.Valid;
@@ -56,7 +56,7 @@ public class RentalController {
     }
 
     // FARMER DASHBOARD
-    @GetMapping("/farmer/my-requests")
+    @GetMapping("/farmer")
     public ResponseEntity<List<FarmerRentalResponseDto>> farmerDashboard(
             @AuthenticationPrincipal UserDetails userDetails) {
 
@@ -93,4 +93,15 @@ public class RentalController {
         rentalService.rejectRental(id, userDetails.getUsername());
         return ResponseEntity.ok("Rental rejected");
     }
+    
+    
+    @GetMapping("/farmer/equipment/{equipmentId}/booked-dates")
+    public ResponseEntity<List<BookedDateDto>> getBookedDates(
+            @PathVariable Long equipmentId) {
+
+        return ResponseEntity.ok(
+            rentalService.getBookedDates(equipmentId)
+        );
+    }
+
 }

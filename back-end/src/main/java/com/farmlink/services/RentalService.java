@@ -3,6 +3,7 @@ package com.farmlink.services;
 import java.util.List;
 
 import com.farmlink.customexception.FarmlinkCustomException;
+import com.farmlink.dto.BookedDateDto;
 import com.farmlink.dto.FarmerRentalResponseDto;
 import com.farmlink.dto.OwnerRentalResponseDto;
 import com.farmlink.dto.RentalRequestDto;
@@ -21,5 +22,8 @@ public interface RentalService {
     void approveRental(Long rentalRequestId, String ownerEmail)throws FarmlinkCustomException;
     void rejectRental(Long rentalRequestId, String ownerEmail) throws FarmlinkCustomException ;
     List<OwnerRentalResponseDto> getOwnerRentals(String ownerEmail);
+    
+    
+    public List<BookedDateDto> getBookedDates(Long equipmentId);
 }
 

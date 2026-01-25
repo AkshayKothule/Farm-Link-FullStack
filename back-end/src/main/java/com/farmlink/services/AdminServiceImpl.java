@@ -51,33 +51,33 @@ public class AdminServiceImpl implements AdminService {
     
     
     
-    @Override
-    public AdminDashboardResponseDto getDashboardData() {
-
-        AdminDashboardResponseDto dto = new AdminDashboardResponseDto();
-
-        // USERS
-        dto.setTotalUsers(userRepository.count());
-        dto.setTotalFarmers(userRepository.countByRole(UserRole.FARMER));
-        dto.setTotalOwners(userRepository.countByRole(UserRole.OWNER));
-
-        // EQUIPMENTS
-        dto.setTotalEquipments(equipmentRepository.count());
-        dto.setAvailableEquipments(
-                equipmentRepository.countByAvailableTrue());
-
-        // RENTALS
-        dto.setTotalRentals(rentalRepository.count());
-        dto.setApprovedRentals(
-                rentalRepository.countByStatus(RentalStatus.APPROVED));
-        dto.setRejectedRentals(
-                rentalRepository.countByStatus(RentalStatus.REJECTED));
-
-        // REVIEWS
-        dto.setTotalReviews(reviewRepository.count());
-        Double avg = reviewRepository.findOverallAverageRating();
-        dto.setAverageRatingOverall(avg != null ? avg : 0.0);
-
-        return dto;
-    }
+//    @Override
+//    public AdminDashboardResponseDto getDashboardData() {
+//
+//        AdminDashboardResponseDto dto = new AdminDashboardResponseDto();
+//
+//        // USERS
+//        dto.setTotalUsers(userRepository.count());
+//        dto.setTotalFarmers(userRepository.countByRole(UserRole.FARMER));
+//        dto.setTotalOwners(userRepository.countByRole(UserRole.OWNER));
+//
+//        // EQUIPMENTS
+//        dto.setTotalEquipments(equipmentRepository.count());
+//        dto.setAvailableEquipments(
+//                equipmentRepository.countByAvailableTrue());
+//
+//        // RENTALS
+//        dto.setTotalRentals(rentalRepository.count());
+//        dto.setApprovedRentals(
+//                rentalRepository.countByStatus(RentalStatus.APPROVED));
+//        dto.setRejectedRentals(
+//                rentalRepository.countByStatus(RentalStatus.REJECTED));
+//
+//        // REVIEWS
+//        dto.setTotalReviews(reviewRepository.count());
+//        Double avg = reviewRepository.findOverallAverageRating();
+//        dto.setAverageRatingOverall(avg != null ? avg : 0.0);
+//
+//        return dto;
+//    }
 }

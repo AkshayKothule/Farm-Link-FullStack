@@ -60,34 +60,59 @@ public class FarmerServiceImpl implements FarmerService {
 
         Farmer farmer = farmerRepository.findByUserId(user.getId())
             .orElseGet(() -> {
-                Farmer newFarmer = new Farmer();
-                newFarmer.setUser(user);
-                newFarmer.setFarmType("Not specified");
-                newFarmer.setLandArea(0.0);
-                return farmerRepository.save(newFarmer);
+                Farmer f = new Farmer();
+                f.setUser(user);
+                f.setFarmType("Not specified");
+                f.setLandArea(0.0);
+               
+                return farmerRepository.save(f);
             });
 
-        return modelMapper.map(farmer, FarmerProfileResponseDto.class);
+        FarmerProfileResponseDto dto = new FarmerProfileResponseDto();
+
+        // ===== USER DATA =====
+        dto.setFirstName(user.getFirstName());
+        dto.setLastName(user.getLastName());
+        dto.setPhoneNumber(user.getPhoneNumber());
+        dto.setEmail(user.getEmail());
+
+        // ===== FARMER DATA =====
+        dto.setFarmType(farmer.getFarmType());
+        dto.setLandArea(farmer.getLandArea());
+        
+
+        return dto;
     }
 
     // ===============================
     // UPDATE FARMER PROFILE
     // ===============================
     @Override
-    public void updateFarmerProfile(
-            FarmerProfileUpdateDto dto, String email) {
+    public void updateFarmerProfile(FarmerProfileUpdateDto dto, String email) {
 
         User user = userRepository.findByEmail(email)
             .orElseThrow(() ->
                 new ResourceNotFoundException("User not found")
             );
 
+        // ===== UPDATE USER =====
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setPhoneNumber(dto.getPhoneNumber());
+
+        userRepository.save(user);
+
+        // ===== UPDATE FARMER =====
         Farmer farmer = farmerRepository.findByUserId(user.getId())
             .orElseThrow(() ->
                 new ResourceNotFoundException("Farmer profile not found")
             );
 
-        modelMapper.map(dto, farmer);
+        farmer.setFarmType(dto.getFarmType());
+        farmer.setLandArea(dto.getLandArea());
+       
+
         farmerRepository.save(farmer);
     }
+
 }

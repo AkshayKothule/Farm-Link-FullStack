@@ -21,7 +21,10 @@ public class FarmerRentalResponseDto {
     private LocalDate startDate;
     private LocalDate endDate;
 
-    private RentalStatus status;
+    private RentalStatus status;   // PENDING / APPROVED / REJECTED
 
-    private Double totalAmount; // NULL until APPROVED
+    private Double totalAmount;    // approved नंतर
+
+    // 🔥 ADD THIS
+    private String paymentStatus;  // CREATED / SUCCESS / FAILED / null
 }

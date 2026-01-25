@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.farmlink.entities.Payment;
+import com.farmlink.entities.RentalRequest;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
@@ -13,4 +14,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     
     // 🔥 REQUIRED for Razorpay verification
     Optional<Payment> findByRazorpayOrderId(String razorpayOrderId);
+    
+    Optional<Payment> findByRentalRequest(RentalRequest rentalRequest);
+
 }

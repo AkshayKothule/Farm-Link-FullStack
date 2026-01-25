@@ -9,18 +9,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.farmlink.customexception.FarmlinkCustomException;
 import com.farmlink.customexception.ResourceNotFoundException;
+import com.farmlink.dto.BookedDateDto;
 import com.farmlink.dto.FarmerRentalResponseDto;
 import com.farmlink.dto.OwnerRentalResponseDto;
 import com.farmlink.dto.RentalRequestDto;
 import com.farmlink.entities.Equipment;
 import com.farmlink.entities.Farmer;
 import com.farmlink.entities.Owner;
+import com.farmlink.entities.Payment;
 import com.farmlink.entities.RentalRequest;
 import com.farmlink.entities.RentalStatus;
 import com.farmlink.entities.User;
 import com.farmlink.repository.EquipmentRepository;
 import com.farmlink.repository.FarmerRepository;
 import com.farmlink.repository.OwnerRepository;
+import com.farmlink.repository.PaymentRepository;
 import com.farmlink.repository.RentalRequestRepository;
 import com.farmlink.repository.UserRepository;
 
@@ -36,6 +39,7 @@ public class RentalServiceImpl implements RentalService {
     private final OwnerRepository ownerRepository;
     private final EquipmentRepository equipmentRepository;
     private final UserRepository userRepository;
+    private final PaymentRepository paymentRepository;
     private final ModelMapper modelMapper;
 
     // =====================================================
@@ -210,13 +214,24 @@ public class RentalServiceImpl implements RentalService {
                     dto.setRentalId(r.getId());
                     dto.setEquipmentName(r.getEquipment().getName());
                     dto.setEquipmentCategory(r.getEquipment().getCategory());
-                    dto.setOwnerName(r.getEquipment().getOwner().getUser().getFirstName());
+                    dto.setOwnerName(
+                        r.getEquipment().getOwner().getUser().getFirstName()
+                    );
                     dto.setStartDate(r.getStartDate());
                     dto.setEndDate(r.getEndDate());
                     dto.setStatus(r.getStatus());
                     dto.setTotalAmount(r.getTotalAmount());
+
+                    Payment payment =
+                        paymentRepository.findByRentalRequest(r).orElse(null);
+
+                    dto.setPaymentStatus(
+                        payment != null ? payment.getStatus().name() : null
+                    );
+
                     return dto;
                 })
+
                 .toList();
     }
 
@@ -248,4 +263,22 @@ public class RentalServiceImpl implements RentalService {
                 })
                 .toList();
     }
+    
+    
+    
+    @Override
+    public List<BookedDateDto> getBookedDates(Long equipmentId) {
+
+        return rentalRepository
+            .findBookedRentalsByEquipment(equipmentId)
+            .stream()
+            .map(r -> {
+                BookedDateDto dto = new BookedDateDto();
+                dto.setStartDate(r.getStartDate());
+                dto.setEndDate(r.getEndDate());
+                return dto;
+            })
+            .toList();
+    }
+
 }

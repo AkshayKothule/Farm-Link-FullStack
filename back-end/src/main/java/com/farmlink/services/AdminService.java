@@ -8,7 +8,7 @@ public interface AdminService {
 
     void deleteReview(Long reviewId);
     
-    AdminDashboardResponseDto getDashboardData();
+//    AdminDashboardResponseDto getDashboardData();
 
 }
 
