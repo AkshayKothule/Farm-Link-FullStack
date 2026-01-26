@@ -16,6 +16,7 @@ import com.farmlink.entities.Owner;
 import com.farmlink.entities.User;
 import com.farmlink.repository.EquipmentRepository;
 import com.farmlink.repository.OwnerRepository;
+import com.farmlink.repository.RentalRequestRepository;
 import com.farmlink.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -23,11 +24,12 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class EquipmentServiceImpl implements EquipmentService {
-
+		
     private final EquipmentRepository equipmentRepository;
     private final UserRepository userRepository;
     private final OwnerRepository ownerRepository;
     private final ModelMapper modelMapper;
+    private final RentalRequestRepository rentalRepository;
 
     @Override
     public Equipment addEquipment(EquipmentRequestDto dto, String email) {
@@ -117,33 +119,38 @@ public class EquipmentServiceImpl implements EquipmentService {
 
     
     
-   @Override
-   public void deleteEquipment(Long equipmentId, String email) throws FarmlinkCustomException {
+@Override
+public void deleteEquipment(Long equipmentId, String email)
+        throws FarmlinkCustomException {
 
-       // 1️⃣ Find User
-       User user = userRepository.findByEmail(email)
-               .orElseThrow(() ->
-                       new ResourceNotFoundException("User not found"));
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() ->
+                    new ResourceNotFoundException("User not found"));
 
-       // 2️⃣ Find Owner
-       Owner owner = ownerRepository.findByUserId(user.getId())
-               .orElseThrow(() ->
-                       new ResourceNotFoundException("Owner profile not found"));
+    Owner owner = ownerRepository.findByUserId(user.getId())
+            .orElseThrow(() ->
+                    new ResourceNotFoundException("Owner profile not found"));
 
-       // 3️⃣ Find Equipment
-       Equipment equipment = equipmentRepository.findById(equipmentId)
-               .orElseThrow(() ->
-                       new ResourceNotFoundException("Equipment not found"));
+    Equipment equipment = equipmentRepository.findById(equipmentId)
+            .orElseThrow(() ->
+                    new ResourceNotFoundException("Equipment not found"));
 
-       // 4️⃣ OWNERSHIP CHECK (🔥 MOST IMPORTANT)
-       if (!equipment.getOwner().getId().equals(owner.getId())) {
-           throw new FarmlinkCustomException(
-                   "You are not allowed to delete this equipment");
-       }
+    if (!equipment.getOwner().getId().equals(owner.getId())) {
+        throw new FarmlinkCustomException(
+                "You are not allowed to delete this equipment");
+    }
 
-       // 5️⃣ SAFE DELETE
-       equipmentRepository.delete(equipment);
-   }
+    // 🚫 BLOCK if future rentals exist
+    if (rentalRepository.existsApprovedFutureRental(equipmentId)) {
+        throw new FarmlinkCustomException(
+                "Cannot disable equipment with future approved rentals");
+    }
+
+    // ✅ SOFT DELETE
+    equipment.setAvailable(false);
+    equipmentRepository.save(equipment);
+}
+
    
    
    //rental check 

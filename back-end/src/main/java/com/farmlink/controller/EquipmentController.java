@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.farmlink.customexception.FarmlinkCustomException;
+import com.farmlink.dto.BookedDateDto;
 import com.farmlink.dto.EquipmentRequestDto;
 import com.farmlink.dto.EquipmentResponseDto;
 import com.farmlink.dto.EquipmentUpdateRequestDto;
@@ -97,6 +98,18 @@ public class EquipmentController {
             equipmentService.browseAvailableEquipments()
         );
     }
+
+//    
+//    @GetMapping("/{equipmentId}/calendar")
+//    public ResponseEntity<List<BookedDateDto>> getEquipmentCalendar(
+//            @PathVariable Long equipmentId,
+//            @AuthenticationPrincipal UserDetails userDetails) {
+//
+//        return ResponseEntity.ok(
+//                equipmentService.getEquipmentBookingCalendar(
+//                        equipmentId,
+//                        userDetails.getUsername()));
+//    }
 
 
 }

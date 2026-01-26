@@ -27,5 +27,8 @@ public interface EquipmentService {
     List<EquipmentBrowseResponseDto> browseAvailableEquipments();
     
 //    private EquipmentResponseDto toResponseDto(Equipment e)
+    
+    
+    
 
 }

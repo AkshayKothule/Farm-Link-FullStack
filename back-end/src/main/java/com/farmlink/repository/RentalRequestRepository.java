@@ -54,4 +54,16 @@ public interface RentalRequestRepository
     List<RentalRequest> findBookedRentalsByEquipment(
         @Param("equipmentId") Long equipmentId
     );
+    
+    @Query("""
+    	    SELECT COUNT(r) > 0
+    	    FROM RentalRequest r
+    	    WHERE r.equipment.id = :equipmentId
+    	      AND r.status = com.farmlink.entities.RentalStatus.APPROVED
+    	      AND r.endDate >= CURRENT_DATE
+    	""")
+    	boolean existsApprovedFutureRental(
+    	    @Param("equipmentId") Long equipmentId
+    	);
+
 }

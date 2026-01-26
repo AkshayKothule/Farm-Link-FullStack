@@ -2,6 +2,7 @@ package com.farmlink.services;
 
 import java.util.List;
 
+import com.farmlink.dto.OwnerPaymentHistoryDto;
 import com.farmlink.dto.PaymentHistoryDto;
 import com.farmlink.dto.PaymentOrderResponseDto;
 import com.farmlink.dto.PaymentVerifyRequestDto;
@@ -16,5 +17,6 @@ public interface PaymentService {
     void verifyPayment(PaymentVerifyRequestDto dto);
     
     List<PaymentHistoryDto> getFarmerPayments(String email);
+    List<OwnerPaymentHistoryDto> getOwnerPayments(String email);
 
 }

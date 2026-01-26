@@ -89,4 +89,10 @@ public class AuthServiceImpl implements AuthService {
                 principal.getUserRole()
         );
     }
+    
+    
+    public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
+    }
+
 }

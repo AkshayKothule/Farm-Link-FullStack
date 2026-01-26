@@ -10,4 +10,7 @@ public interface AuthService {
     
     //Login Authentication Method
     public LoginResponseDto login(LoginRequestDto loginDto);
+    
+    
+    public String encodePassword(String rawPassword) ;
 }

@@ -7,6 +7,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import com.farmlink.dto.OwnerPaymentHistoryDto;
 import com.farmlink.dto.PaymentHistoryDto;
 import com.farmlink.dto.PaymentOrderResponseDto;
 import com.farmlink.dto.PaymentVerifyRequestDto;
@@ -53,5 +54,14 @@ public class PaymentController {
             paymentService.getFarmerPayments(user.getUsername())
         );
     }
+    @GetMapping("/owner")
+    public ResponseEntity<List<OwnerPaymentHistoryDto>> ownerPayments(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        return ResponseEntity.ok(
+            paymentService.getOwnerPayments(userDetails.getUsername())
+        );
+    }
+
 
 }

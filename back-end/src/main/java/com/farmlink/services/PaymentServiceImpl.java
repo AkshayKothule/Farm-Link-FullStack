@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.farmlink.customexception.ResourceNotFoundException;
+import com.farmlink.dto.OwnerPaymentHistoryDto;
 import com.farmlink.dto.PaymentHistoryDto;
 import com.farmlink.dto.PaymentOrderResponseDto;
 import com.farmlink.dto.PaymentVerifyRequestDto;
@@ -155,6 +156,30 @@ public List<PaymentHistoryDto> getFarmerPayments(String email) {
                     payment.getUpdatedAt()   // paidAt
             ))
             .toList();
+}
+@Override
+public List<OwnerPaymentHistoryDto> getOwnerPayments(String email) {
+
+    return paymentRepository
+        .findByRentalRequestEquipmentOwnerUserEmail(email)
+        .stream()
+        .map(payment -> new OwnerPaymentHistoryDto(
+            payment.getRentalRequest()
+                   .getEquipment()
+                   .getName(),
+
+            payment.getRentalRequest()
+                   .getFarmer()
+                   .getUser()
+                   .getFirstName(),
+
+            payment.getAmount(),
+            payment.getStatus(),
+
+            // SUCCESS payment → updatedAt = paid time
+            payment.getUpdatedAt()
+        ))
+        .toList();
 }
 
 

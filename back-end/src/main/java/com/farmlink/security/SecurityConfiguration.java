@@ -63,7 +63,9 @@ public class SecurityConfiguration {
                 "/swagger-ui/**",
                 "/swagger-ui.html",
                 "/api/auth/login",
-                "/api/auth/register"
+                "/api/auth/register",
+                "/api/auth/forgot-password",
+                "/api/auth/reset-password"
             ).permitAll()
 
             // 🔓 Preflight (CORS)

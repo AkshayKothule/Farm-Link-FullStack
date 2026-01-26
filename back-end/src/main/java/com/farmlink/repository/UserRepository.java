@@ -18,5 +18,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByPhoneNumber(String phoneNumber);
     
     long countByRole(UserRole role);
+    
+    Optional<User> findByResetToken(String resetToken);
+
 
 }

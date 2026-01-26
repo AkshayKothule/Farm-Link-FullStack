@@ -19,6 +19,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Optional<Payment> findByRentalRequest(RentalRequest rentalRequest);
     
     List<Payment> findByRentalRequestFarmerUserEmail(String email);
+    
+    // ✅ OWNER → Payments received on owner's equipments
+    List<Payment> findByRentalRequestEquipmentOwnerUserEmail(String email);
 
 
 }
