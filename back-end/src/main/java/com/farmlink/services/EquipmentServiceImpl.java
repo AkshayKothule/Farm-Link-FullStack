@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.farmlink.customexception.FarmlinkCustomException;
 import com.farmlink.customexception.ResourceNotFoundException;
@@ -12,8 +14,10 @@ import com.farmlink.dto.EquipmentRequestDto;
 import com.farmlink.dto.EquipmentResponseDto;
 import com.farmlink.dto.EquipmentUpdateRequestDto;
 import com.farmlink.entities.Equipment;
+import com.farmlink.entities.EquipmentImage;
 import com.farmlink.entities.Owner;
 import com.farmlink.entities.User;
+import com.farmlink.repository.EquipmentImageRepository;
 import com.farmlink.repository.EquipmentRepository;
 import com.farmlink.repository.OwnerRepository;
 import com.farmlink.repository.RentalRequestRepository;
@@ -22,58 +26,86 @@ import com.farmlink.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class EquipmentServiceImpl implements EquipmentService {
-		
+	
+    private static final int MAX_IMAGES = 5;
+
     private final EquipmentRepository equipmentRepository;
     private final UserRepository userRepository;
     private final OwnerRepository ownerRepository;
     private final ModelMapper modelMapper;
     private final RentalRequestRepository rentalRepository;
+    private final CloudinaryService cloudinaryService;
+    private final EquipmentImageRepository equipmentImageRepository;
 
     @Override
-    public Equipment addEquipment(EquipmentRequestDto dto, String email) {
+    public void addEquipment(
+            EquipmentRequestDto dto,
+            List<MultipartFile> images,
+            String email) {
 
-        // 1️⃣ Find logged-in user
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // 2️⃣ Get owner profile (must exist)
         Owner owner = ownerRepository.findByUserId(user.getId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Owner profile not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Owner profile not found"));
 
-        // 3️⃣ DTO → Entity
+        if (images != null && images.size() > MAX_IMAGES) {
+            throw new RuntimeException("Maximum " + MAX_IMAGES + " images allowed");
+        }
+
         Equipment equipment = modelMapper.map(dto, Equipment.class);
-
-        // 4️⃣ Mandatory system fields
         equipment.setOwner(owner);
         equipment.setAvailable(true);
 
-        // 5️⃣ Save
-        return equipmentRepository.save(equipment);
+        equipmentRepository.save(equipment);
+
+        if (images != null && !images.isEmpty()) {
+            for (MultipartFile file : images) {
+                validateImage(file);
+
+                String url = cloudinaryService.upload(file);
+
+                EquipmentImage img = new EquipmentImage();
+                img.setEquipment(equipment);
+                img.setImageUrl(url);
+
+                equipmentImageRepository.save(img);
+            }
+        }
     }
 
-    @Override
-    public List<EquipmentResponseDto> getMyEquipments(String email) {
+    private void validateImage(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new RuntimeException("Empty image not allowed");
+        }
 
-        // 1️⃣ Find User
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("User not found"));
-
-        // 2️⃣ Find Owner
-        Owner owner = ownerRepository.findByUserId(user.getId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Owner profile not found"));
-
-        // 3️⃣ Fetch equipments
-        return equipmentRepository.findByOwnerId(owner.getId())
-                .stream()
-                .map(eq -> modelMapper.map(eq, EquipmentResponseDto.class))
-                .toList();
+        if (!file.getContentType().startsWith("image/")) {
+            throw new RuntimeException("Only image files allowed");
+        }
     }
+
+//    @Override
+//    public List<EquipmentResponseDto> getMyEquipments(String email) {
+//
+//        // 1️⃣ Find User
+//        User user = userRepository.findByEmail(email)
+//                .orElseThrow(() ->
+//                        new ResourceNotFoundException("User not found"));
+//
+//        // 2️⃣ Find Owner
+//        Owner owner = ownerRepository.findByUserId(user.getId())
+//                .orElseThrow(() ->
+//                        new ResourceNotFoundException("Owner profile not found"));
+//
+//        // 3️⃣ Fetch equipments
+//        return equipmentRepository.findByOwnerId(owner.getId())
+//                .stream()
+//                .map(eq -> modelMapper.map(eq, EquipmentResponseDto.class))
+//                .toList();
+//    }
     
     
 
@@ -153,24 +185,37 @@ public void deleteEquipment(Long equipmentId, String email)
 
    
    
-   //rental check 
-   @Override
-   public List<EquipmentBrowseResponseDto> browseAvailableEquipments() {
+//🔹 FARMER → BROWSE AVAILABLE EQUIPMENTS
+@Override
+public List<EquipmentBrowseResponseDto> browseAvailableEquipments() {
 
-       return equipmentRepository.findByAvailableTrue()
-               .stream()
-               .map(eq -> {
-                   EquipmentBrowseResponseDto dto =
-                           modelMapper.map(eq, EquipmentBrowseResponseDto.class);
+    return equipmentRepository.findByAvailableTrue()
+            .stream()
+            .map(eq -> {
 
-                   // Owner display info
-                   dto.setOwnerBusinessName(
-                           eq.getOwner().getBusinessName());
+                EquipmentBrowseResponseDto dto =
+                        modelMapper.map(eq, EquipmentBrowseResponseDto.class);
 
-                   return dto;
-               })
-               .toList();
-   }
+                dto.setOwnerBusinessName(
+                        eq.getOwner().getBusinessName()
+                );
+
+                List<EquipmentImage> imageEntities =
+                        equipmentImageRepository.findByEquipmentId(eq.getId());
+
+                List<String> images = imageEntities
+                        .stream()
+                        .map(img -> img.getImageUrl())
+                        .toList();
+
+                dto.setImageUrls(images); // ✅ VERY IMPORTANT
+
+                return dto;
+            })
+            .toList();
+}
+
+
    
    
    
@@ -200,6 +245,34 @@ public void deleteEquipment(Long equipmentId, String email)
 //       return dto;
 //   }
 
+   @Override
+   public List<EquipmentResponseDto> getMyEquipments(String email) {
+
+       User user = userRepository.findByEmail(email)
+               .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+       Owner owner = ownerRepository.findByUserId(user.getId())
+               .orElseThrow(() -> new ResourceNotFoundException("Owner profile not found"));
+
+       return equipmentRepository.findByOwnerId(owner.getId())
+               .stream()
+               .map(eq -> {
+                   EquipmentResponseDto dto =
+                           modelMapper.map(eq, EquipmentResponseDto.class);
+
+                   // ✅ FETCH IMAGES
+                   List<String> images =
+                           equipmentImageRepository
+                                   .findByEquipmentId(eq.getId())
+                                   .stream()
+                                   .map(EquipmentImage::getImageUrl)
+                                   .toList();
+
+                   dto.setImageUrls(images);
+                   return dto;
+               })
+               .toList();
+   }
 
     
 }

@@ -1,5 +1,7 @@
 package com.farmlink.dto;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,5 +15,5 @@ public class EquipmentResponseDto {
     private Double rentPerDay;
     private Boolean available;
     private String description;
-    private String imageUrl;
+    private List<String> imageUrls; // 👈 Cloudinary URLs
 }

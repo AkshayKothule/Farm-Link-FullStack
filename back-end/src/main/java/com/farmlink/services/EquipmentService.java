@@ -2,6 +2,8 @@ package com.farmlink.services;
 
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.farmlink.customexception.FarmlinkCustomException;
 import com.farmlink.dto.EquipmentBrowseResponseDto;
 import com.farmlink.dto.EquipmentRequestDto;
@@ -11,8 +13,12 @@ import com.farmlink.entities.Equipment;
 
 public interface EquipmentService {
 
-    public Equipment addEquipment(EquipmentRequestDto dto, String email);
-    
+	public void addEquipment(
+	        EquipmentRequestDto dto,
+	        List<MultipartFile> images,
+	        String email);
+	
+	
     public List<EquipmentResponseDto> getMyEquipments(String email);
     
     public void updateEquipment(

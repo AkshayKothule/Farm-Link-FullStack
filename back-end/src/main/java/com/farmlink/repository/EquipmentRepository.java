@@ -6,6 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.farmlink.entities.Equipment;
 
+import lombok.Getter;
+import lombok.Setter;
+
+
 public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
 
     List<Equipment> findByOwnerId(Long ownerId);
