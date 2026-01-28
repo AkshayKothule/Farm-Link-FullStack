@@ -16,8 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.farmlink.dto.AdminReviewResponseDto;
 import com.farmlink.dto.ReviewRequestDto;
-import com.farmlink.dto.ReviewResponseDto;
+import com.farmlink.dto.AdminReviewResponseDto;
 import com.farmlink.services.ReviewService;
 
 import jakarta.validation.Valid;
@@ -68,7 +69,7 @@ public class ReviewController {
 
     
     @GetMapping("/equipment/{equipmentId}")
-    public ResponseEntity<List<ReviewResponseDto>> getReviews(
+    public ResponseEntity<List<AdminReviewResponseDto>> getReviews(
             @PathVariable Long equipmentId) {
 
         return ResponseEntity.ok(

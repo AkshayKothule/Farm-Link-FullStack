@@ -7,8 +7,9 @@ import org.springframework.stereotype.Service;
 import com.farmlink.customexception.AuthenticationException;
 import com.farmlink.customexception.ResourceAlreadyExists;
 import com.farmlink.customexception.ResourceNotFoundException;
+import com.farmlink.dto.AdminReviewResponseDto;
 import com.farmlink.dto.ReviewRequestDto;
-import com.farmlink.dto.ReviewResponseDto;
+import com.farmlink.dto.AdminReviewResponseDto;
 import com.farmlink.entities.Equipment;
 import com.farmlink.entities.Farmer;
 import com.farmlink.entities.Review;
@@ -108,18 +109,28 @@ public class ReviewServiceImpl implements ReviewService {
 
     
     @Override
-    public List<ReviewResponseDto> getReviewsByEquipment(Long equipmentId) {
+    public List<AdminReviewResponseDto> getReviewsByEquipment(Long equipmentId) {
 
-        List<Review> reviews = reviewRepository.findByEquipmentId(equipmentId);
+        List<Review> reviews =
+                reviewRepository.findByEquipmentId(equipmentId);
 
         return reviews.stream()
-                .map(r -> new ReviewResponseDto(
-                        r.getRating(),
-                        r.getComment(),
+                .map(r -> {
+                    AdminReviewResponseDto dto =
+                            new AdminReviewResponseDto();
+
+                    dto.setId(r.getId());
+                    dto.setRating(r.getRating());
+                    dto.setComment(r.getComment());
+                    dto.setUserName(
                         r.getFarmer().getUser().getFirstName()
-                ))
+                    );
+
+                    return dto;
+                })
                 .toList();
     }
+
 
     @Override
     public Double getAverageRating(Long equipmentId) {

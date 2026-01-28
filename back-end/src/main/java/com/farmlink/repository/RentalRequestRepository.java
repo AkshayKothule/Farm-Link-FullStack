@@ -66,4 +66,6 @@ public interface RentalRequestRepository
     	    @Param("equipmentId") Long equipmentId
     	);
 
+    
+    Long countByStatus(RentalStatus status);
 }

@@ -3,25 +3,27 @@ package com.farmlink.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+
 @Getter
 @Setter
 public class AdminDashboardResponseDto {
 
     // USERS
-    private Long totalUsers;
-    private Long totalFarmers;
-    private Long totalOwners;
+    private long totalUsers;
+    private long totalFarmers;
+    private long totalOwners;
+    private long pendingOwners;
 
-    // EQUIPMENT
-    private Long totalEquipments;
-    private Long availableEquipments;
+    // EQUIPMENTS
+    private long totalEquipments;
+    private long availableEquipments;
 
     // RENTALS
-    private Long totalRentals;
-    private Long approvedRentals;
-    private Long rejectedRentals;
+    private long totalRentals;
+    private long approvedRentals;
+    private long rejectedRentals;
 
     // REVIEWS
-    private Long totalReviews;
-    private Double averageRatingOverall;
+    private long totalReviews;
+    private double averageRatingOverall;
 }

@@ -16,6 +16,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public abstract class BaseEntity {
+	
 
     @Column(nullable = false, updatable = false)
     @CreationTimestamp

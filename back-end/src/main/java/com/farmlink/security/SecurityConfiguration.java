@@ -83,7 +83,7 @@ public class SecurityConfiguration {
 
             // 🔐 ADMIN APIs
             .requestMatchers("/admin/**").hasRole("ADMIN")
-            .requestMatchers(HttpMethod.DELETE, "/reviews/**").hasRole("ADMIN")
+//            .requestMatchers(HttpMethod.DELETE, "/reviews/**").hasRole("ADMIN")
 
             // 🔐 Any other request
             .anyRequest().authenticated()
